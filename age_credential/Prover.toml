@@ -1,0 +1,7 @@
+# Private inputs (known only to the prover)
+birth_year = 1987
+
+# Public inputs (known to both prover and verifier)
+credential   = "0x19dd02231fae3225ecd14756dea26bd8aa2acc906f462f5cbcfc8f19ac99a1ae"
+current_year = 2026
+required_age = 18

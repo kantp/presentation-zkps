@@ -1,0 +1,7 @@
+node_modules/
+target/
+.claude/
+.cursor/
+slides/_site/
+slides/presentation.pdf
+slides/presentation.html

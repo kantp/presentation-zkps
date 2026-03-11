@@ -1,0 +1,1011 @@
+---
+title: "Zero Knowledge Proof? That Sounds Useless!"
+theme: black
+highlightTheme: monokai
+css: custom.css
+revealOptions:
+  transition: fade
+  controls: true
+  progress: true
+  slideNumber: true
+  center: true
+  width: 1280
+  height: 800
+  margin: 0.05
+  minScale: 0.2
+  maxScale: 2.0
+---
+
+<!-- BobKonf 2026 · Berlin · March 13 -->
+<!-- run: npx reveal-md slides.md --watch -->
+
+# Zero Knowledge Proof?
+## That Sounds Useless!
+
+<br>
+
+**Philipp Kant**
+Ensurable Systems, Co-Founder and CTO
+
+BobKonf 2026 · Berlin
+
+Note:
+Welcome. Title is a provocation — by the end you'll see ZKPs are the opposite of useless.
+They're the engineering foundation of digital sovereignty.
+
+---
+
+<!-- .slide: data-background="#1a1a2e" -->
+
+## Keynote: Digital Sovereignty
+
+<br>
+
+> Data Sovereignity
+> **as an engineering problem**
+
+Note:
+Hook into the morning keynote. Connect it explicitly.
+
+----
+
+## Datensparsamkeit
+
+Note:
+1. Datensparsamkeit — the story at the pharmacy
+2. In the analog world, this was necessary and the harm was contained
+3. In the digital world, data aggregates and leaks — the harm is not contained
+4. And unlike the pharmacy, it's now preventable
+
+----
+
+## Every day you prove things about yourself
+
+<br>
+
+- Your **age** → access content, buy things, enter venues
+- Your **income** → loans, apartments
+- Your **credentials** → jobs, professions
+- Your **identity** → votes, contracts, borders
+
+Note:
+This is not abstract. Every day. To systems that don't need the full picture.
+
+----
+
+## Today's model
+
+<br>
+
+```text
+You want to prove you're over 18.
+
+You hand over:   your passport
+
+They now have:   your full name
+                 your date of birth
+                 your nationality
+                 your address
+                 your passport number
+                 your photo
+```
+
+They needed: **one bit.** `age ≥ 18`
+
+Note:
+Digital process modelled after analog process. Unnecessary and dangerous.
+
+----
+
+## This is **delegation of trust**.
+
+<br>
+
+- Every party you share data with becomes a target
+- Breaches are inevitable
+- You have no control once you've shared
+
+Note:
+The broken model. The data is out there. You can't un-share it.
+This isn't sovereignty.
+
+----
+
+## Zero-Knowledge Argument of Knowledge
+
+<br>
+
+<table>
+  <thead><tr><th>Instead of…</th><th>Just prove…</th></tr></thead>
+  <tbody>
+    <tr><td>Your date of birth</td><td><em>I know when I was born, and it's more than 18 years ago</em></td></tr>
+    <tr><td>Your bank statements</td><td><em>I know my financial history, and I know it meets the lender's criteria</em></td></tr>
+    <tr><td>Your licence number</td><td><em>I have a government-signed licence, and I know it hasn't expired or been revoked</em></td></tr>
+  </tbody>
+</table>
+
+
+Note:
+The inversion: proving the claim without surrendering the underlying data.
+Each row is phrased as a knowledge claim — not just "this fact is true" but "I know a witness that makes it true."
+That distinction is the whole point: the verifier learns only that you know, not what you know.
+
+Unpack the term word by word:
+- "Argument" — a probabilistic, cryptographic convincing. Not a mathematical proof in the Euclidean sense, but overwhelming evidence.
+- "of Knowledge" — crucially, not just "the claim is true" but "I *know* a witness that makes it true". I know my birth year. I know it satisfies the inequality. That knowing is what can't be faked.
+- "Zero-Knowledge" — the argument reveals nothing about the underlying data. The verifier learns only that the claim is true.
+
+Often shortened to "zero-knowledge proof" or ZKP — the two terms are used interchangeably in the field, though "argument" is technically more precise for the probabilistic case.
+
+----
+
+## Zero Knowledge Proof?
+## That sounds useless!
+
+<br>
+
+*Actually, it's what makes the internet safe for secrets.*
+
+Note:
+Callback to the title. Hold this thought — we'll return to it at the end.
+
+---
+
+## Let's Formalise!
+
+A zero-knowledge argument of knowledge (or zero-knowledge proof) is a protocol between a **prover** and a **verifier**.
+
+The prover convinces the verifier they know a secret 
+*without revealing the secret*.
+
+<br>
+
+We need the following properties:
+
+```text
+  □  Soundness       dishonest provers always fail
+  □  Zero-knowledge  the prover reveals nothing about the secret
+  □  Completeness    honest provers always succeed
+```
+
+Note:
+The checklist makes "convinces" precise. Each property rules out a different way the protocol could fail:
+- Soundness: the system is *trustworthy* — you can't fake knowledge you don't have
+- Zero-knowledge: the system is *sovereign* — convincing someone reveals nothing extra
+- Completeness: the system is *usable* — if you do have the knowledge, you can always prove it
+Soundness and ZK come first — both fall out of the polynomial proof mechanism.
+Completeness comes last: showing that any computation can be expressed in that form.
+
+---
+
+<!-- .slide: data-background="#1a1a1a" -->
+
+## A Weirdly Specific Example
+
+Let **C** and **Z** be public polynomials over **𝔽_p**
+
+<br>
+
+> "I know a private polynomial **w**
+> such that **C(w) is divisible by Z**."
+
+<br>
+
+Knowing **w** 
+<br> $\Leftrightarrow$ knowing all its coefficients
+<br> $\Leftrightarrow$ being able to evaluate it at any point.
+
+Note:
+This form looks oddly specific. Bear with me — by the end you'll see why we chose this.
+
+Warn the audience before diving in:
+"This is the dense part — the mathematical core. It'll take about 10 minutes and it will get abstract.
+If you lose the thread at some point, don't worry — the Noir demo after this will make every single
+piece of it concrete and runnable. You can re-enter there."
+
+C and Z are public — both prover and verifier know them.
+w is private — only the prover knows it. That is what the prover wants to hide.
+C(w) = C ∘ w: function composition, not evaluation at a point. The result is a new polynomial.
+Knowing w ≡ knowing its coefficients ≡ being able to evaluate it anywhere — three equivalent formulations.
+
+----
+
+## Schwartz-Zippel
+
+<br>
+
+> Two distinct polynomials of degree `d`
+> agree at **at most** `d` points.
+
+<br>
+
+```text
+|𝔽_p|  ≈  2²⁵⁶     degree  ≈  thousands
+
+probability of a random point being one of them:  d / |𝔽_p|  ≈  10⁻⁷⁴
+```
+
+<br>
+
+Knowing `w` ≡ evaluating it correctly at **one** random point.
+
+Note:
+The key step: from "being able to evaluate at any point" to "one random point is enough".
+If you know w, you can evaluate it correctly at any r.
+If you don't know w, you almost certainly cannot — the field is 2²⁵⁶ elements, degree is thousands.
+
+----
+
+## The Protocol
+
+<br>
+
+```text
+1.  Verifier picks random r
+
+2.  Prover reveals  w(r)  and  t(r)
+
+3.  Verifier checks:  C(w(r))  =  t(r) · Z(r)
+```
+
+<div class="fragment">
+<br>
+
+The prover sees `r` before revealing anything —
+they could choose `w` and `t` *after* seeing `r`, without knowing a valid polynomial.
+
+**The prover must commit to `w` and `t` before seeing `r`.**
+</div>
+
+Note:
+Present the protocol, then pause and ask the audience: is this sound?
+Let them think. Then reveal the fragment: the prover sees r first, so they can cheat: choose t(r) such that t(r) = C(w(r))/Z(r)
+The fix is a commitment scheme.
+
+----
+
+## Commitment Schemes
+
+<br>
+
+A hash gives you **binding**: publish `H(w)` → you can't change `w` afterwards.
+But the verifier needs `w` to check — **no hiding**.
+
+<br>
+
+Polynomial commitments add both **hiding** and **evaluation proofs**:
+
+- **Binding**: can't change `w` after committing
+- **Hiding**: `commit(w)` reveals nothing about `w`
+- **Evaluation proofs**: prove `w(r) = v` without revealing `w`
+
+The extra ingredient: **elliptic curve pairings**
+
+----
+
+## The Protocol
+
+<br>
+
+```text
+0.  Prover publishes  commit(w),  commit(t)
+1.  Verifier picks random r
+2.  Prover reveals  w(r),  t(r)  + evaluation proofs
+3.  Verifier checks:  C(w(r))  =  t(r) · Z(r)
+```
+
+
+----
+
+## ☑ Soundness
+
+```text
+  ☑  Soundness       dishonest provers always fail
+  □  Zero-knowledge  the prover reveals nothing about the secret
+  □  Completeness    honest provers always succeed
+```
+
+Note:
+Commit-first ordering + Schwartz-Zippel = soundness.
+A cheating prover commits to w before seeing r, then can't retroactively choose w to pass.
+
+----
+
+## Zero Knowledge?
+
+| What the verifier sees | What it reveals |
+|------------------------|-----------------|
+| `commit(w)`, `commit(t)` | nothing — coefficients are hidden |
+| `w(r)`, `t(r)` | one point on a degree-d polynomial |
+
+<div class="fragment">
+<br>
+
+One point cannot determine a degree-d polynomial.
+
+The verifier learns *very little*. Only nearly **zero** knowledge.
+
+</div>
+
+<div class="fragment">
+<br>
+
+A technique called **blinding** removes the "nearly":
+the prover adds a fresh random term to `w` before committing,
+making the evaluation point completely uninformative. **Zero knowledge** ✓
+
+</div>
+
+Note:
+First fragment: the information-theoretic argument. One evaluation point is insufficient to reconstruct
+a degree-d polynomial, so the verifier can't learn the wire values from w(r) alone.
+
+Second fragment: name blinding, don't explain the mechanism. The audience doesn't have circuits yet
+and can't verify the correctness argument. "A technique exists" is enough here.
+
+If asked how blinding works: the prover adds b(x)·Z(x) to w(x). Because Z vanishes at all constraint
+evaluation points, the wire values are unchanged — but the evaluation w(r) is masked by a fresh random
+term. We'll see exactly why Z has that property in the Completeness section. See bonus slide
+
+----
+
+## ☑ Zero-Knowledge
+
+```text
+  ☑  Soundness       dishonest provers always fail
+  ☑  Zero-knowledge  the prover reveals nothing about the secret
+  □  Completeness    honest provers always succeed
+```
+
+Note:
+Two boxes checked. On to completeness: can we put age ≥ 18 in this form?
+
+---
+
+## Completeness
+
+We can prove **"I know `w` such that `C(w)` is divisible by `Z`"**.
+
+<div class="fragment">
+<br>
+
+That's great, I guess?
+
+</div>
+
+<div class="fragment">
+<br>
+
+But what about more general secrets?
+
+
+</div>
+
+<div class="fragment">
+<br>
+
+**Claim:** any secret input to any computation
+can be turned into a claim of exactly this form.
+
+</div>
+
+Note:
+First fragment: let the "I guess?" land. The audience has just been told they can prove polynomial
+secrets. Mild deflation is intentional.
+Second fragment: voice the obvious objection.
+Third fragment: the payoff promise. Then prove it by example.
+
+----
+
+## Start simple: `age = 18`
+
+<br>
+
+```text
+assert current_year − birth_year = 18
+```
+
+<br>
+
+One constraint. One private input. Let's turn this into a circuit.
+
+Note:
+age ≥ 18 is the real goal but requires bit decomposition — too many gates to show explicitly.
+age = 18 is one constraint, one gate, one private wire. Enough to show the whole construction.
+current_year and 18 are public constants — they live in the constraint, not in the secret input.
+
+----
+
+## The circuit
+
+```text
+  birth_year ──→ [ assert current_year - birth_year - 18 = 0 ]
+```
+
+- One **gate**, asserting one equation
+- One private **wire value**: birth_year
+- current_year and 18 are public — baked into the gate, not wires
+
+Note:
+current_year is public: the verifier knows it. 18 is a constant. Only birth_year is secret.
+The gate encodes the full constraint — no intermediate wire needed.
+
+----
+
+## Encoding the wire values — w
+
+One private wire, one evaluation point:
+
+```text
+  w(ω⁰) = birth_year       (private)
+```
+
+w is the unique polynomial of degree 0 through this one point.
+
+<div class="fragment">
+<br>
+
+With **n wires**, we'd have n evaluation points:
+
+```text
+  w(ω⁰) = wire₀,   w(ω¹) = wire₁,   …,   w(ωⁿ⁻¹) = wireₙ₋₁
+```
+
+w is the unique polynomial of degree n−1 through these n points.
+
+</div>
+
+Note:
+One wire → degree-0 polynomial (a constant). One point determines it uniquely.
+For n wires: interpolation gives a degree-(n−1) polynomial through n points — Lagrange interpolation.
+ω⁰, ω¹, … are distinct evaluation points; roots of unity are a performance choice
+(Z collapses to xⁿ − 1, enabling FFT).
+
+----
+
+## Encoding the constraints — C and C(w)
+
+**C** — the gate's constraint rule, as a polynomial in the wire value (public):
+
+```text
+  C(v)  =  current_year − v − 18
+```
+
+**C(w)** — function composition: substitute the wire polynomial into C:
+
+```text
+  C(w)(x)   =  C(w(x))  =  current_year − w(x) − 18
+
+  C(w)(ω⁰)  =  C(w(ω⁰))  =  current_year − birth_year − 18
+```
+
+Note:
+C is public: it encodes the gate constraint, with public constants (current_year, 18) baked in.
+C(w) is genuine polynomial composition — C(w(x)) — one polynomial in x.
+The prover evaluates C(w)(ω⁰): if it's 0, the constraint holds and the quotient t = C(w)/Z exists.
+
+----
+
+## Z and the divisibility claim
+
+```text
+w(ω⁰) = birth_year
+
+C(w)(ω⁰)  =  C(w(ω⁰))  =  current_year − birth_year − 18
+```
+
+**Z** — one root at the gate position:
+
+```text
+  Z(x) = (x − ω⁰)          zero at ω⁰, nowhere else
+```
+
+```text
+  C(w) divisible by Z
+      ⟺  C(w)(ω⁰) = 0          ← factor theorem
+      ⟺  gate equation holds
+      ⟺  birth_year = current_year − 18
+```
+
+*(factor theorem: (x−a) divides P iff P(a) = 0)*
+
+Note:
+Z marks the gate position — zero exactly where the constraint must hold.
+t = C(w)/Z exists iff C(w) vanishes at the gate. t is the certificate of correctness.
+Factor theorem: trivial forward direction (if C(w) = Z·t then C(w)(ω⁰) = 0·t(ω⁰) = 0).
+Backward direction: (x−ω⁰) divides C(w) iff C(w)(ω⁰) = 0 — polynomial remainder theorem.
+For more gates: Z = (x−ω⁰)(x−ω¹)···, one factor per gate. Same argument.
+
+----
+
+## This is the weirdly specific example
+
+<br>
+
+```text
+  "I know w and t  such that  C(w) = t · Z"
+```
+
+<br>
+
+- `w` — the wire polynomial: w(ω⁰) = birth_year
+- `C` — the gate constraint: C(v) = current_year − v − 18, public
+- `Z` — (x − ω⁰), zero at the gate position
+- `t` — quotient: certificate that the constraint passes
+
+Note:
+This is the completeness payoff. The "weirdly specific" form from the start of the section is
+exactly what every circuit produces.
+
+For a general circuit: more gates → more roots in Z, more wire values in w, separate wire
+polynomials per role (left input, right input, output). Same argument scales.
+
+----
+
+## The same scheme, more wires
+
+```text
+  birth_year  ──→ [ subtract ] ──age──→ [ = 18 ]
+  current_year ──↗
+```
+
+- **w** — one evaluation point per wire: birth_year, current_year, age
+- **C** — one constraint per gate, in terms of the wire values
+- **Z** — one root per gate: (x − ω⁰)(x − ω¹)
+- **C(w) = t · Z** — same claim, same verification
+
+Note:
+The key point: the structure is identical. More gates → more roots in Z, more wires in w.
+With multiple wire roles per gate (left input, right input, output), real schemes use separate
+wire polynomials — one per role — so that C(w) remains a genuine polynomial composition.
+The prover commits to each, the verifier gets one evaluation of each at the random challenge r.
+
+----
+
+## Generalising to `age ≥ 18`
+
+`age = 18` needed **1 gate**. `age ≥ 18` requires a range check:
+
+```text
+  diff = age − 18
+  diff = b₇·128 + b₆·64 + … + b₀·1
+  bᵢ · (1 − bᵢ) = 0,  for each i
+```
+
+1 gate for the subtraction, 1 for the recombination, 8 boolean gates — one per bit.
+Each `bᵢ ∈ {0,1}` enforced by the boolean gate. Maximum 8-bit value: **255**.
+
+In **𝔽_p**, subtraction wraps:
+`age < 18` → `diff ≈ 2²⁵⁶` — too large for any 8-bit assignment. ✗
+`age ≥ 18` → `diff ≤ 255` — a valid witness exists. ✓
+
+~10 gates. Same structure — one equation per gate, one root in Z.
+
+Note:
+In 𝔽_p there are no negative numbers — subtraction wraps mod p.
+age=10: diff = 10−18 = p−8 ≈ 2²⁵⁶−8. No 8 bits of {0,1} can sum to that.
+age=25: diff = 7 = 0b00000111. Fits fine.
+
+----
+
+## ☑ Completeness
+
+```text
+  ☑  Soundness       dishonest provers always fail
+  ☑  Zero-knowledge  the prover reveals nothing about the secret
+  ☑  Completeness    honest provers always succeed
+```
+
+<br>
+
+What we just built has a name: a **SNARK** —
+**S**uccinct **N**on-interactive **AR**gument of **K**nowledge.
+
+Note:
+All three boxes checked.
+
+Succinct: proof size and verification time don't grow with computation complexity.
+Non-interactive: r is derived from the commitment via a hash (Fiat-Shamir), no back-and-forth needed.
+UltraHonk is the specific proving scheme Noir uses under the hood.
+
+---
+
+## So.
+
+<br>
+
+Who is looking forward to writing
+circuits and polynomial constraints?
+
+<div class="fragment">
+<br>
+
+We could just drop it all into an LLM and hope for the best.
+
+</div>
+
+<div class="fragment">
+<br>
+
+Or we could use a language **designed** for exactly this.
+
+</div>
+
+Note:
+First beat: pause, let the silence land.
+Second beat: say it with a straight face. Let them laugh.
+Third beat: pivot to DSLs as the obviously correct answer.
+The audience will supply the implicit argument themselves: in a domain where bugs are invisible and silent, you want a type system, not a prompt.
+
+----
+
+## The ZKP DSL landscape
+
+Before DSLs: every gate specified by hand — Rank-1 Constraint Systems (R1CS). **Now:** write code. Get circuits.
+
+<br>
+
+<table>
+  <thead><tr><th>DSL</th><th>Syntax</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Noir</strong></td><td>Rust-like</td><td>Clean, readable, Aztec-backed</td></tr>
+    <tr><td>Cairo</td><td>Rust-like</td><td>Starknet ecosystem</td></tr>
+    <tr><td>o1js</td><td>TypeScript</td><td>Mina protocol</td></tr>
+    <tr><td>Leo</td><td>Rust-like</td><td>Aleo network</td></tr>
+  </tbody>
+</table>
+
+Note:
+Why Noir for this talk?
+- Syntax reads on slides
+- Separates private/public inputs clearly
+- Active ecosystem and good tooling
+
+---
+
+## EU Digital ID Wallet
+
+<br>
+
+Prove you're over 18 to a service —
+without revealing your date of birth.
+
+Note:
+This is the re-entry point promised at the start of the math section.
+"If any of the last 10 minutes felt abstract — this is where it lands.
+We're going to run actual code. You'll see C, w, Z, the commitment, the proof, the verification —
+all of it, in a working circuit you can run yourself."
+
+----
+
+## The Noir circuit
+
+```rust
+fn main(
+    birth_year:   u32,        // PRIVATE: stays in your wallet
+
+    credential:   pub Field,  // PUBLIC: pedersen_hash([birth_year])
+    current_year: pub u32,    // PUBLIC: verifier provides
+    required_age: pub u32,    // PUBLIC: verifier provides
+) {
+    let computed = std::hash::pedersen_hash([birth_year as Field]);
+    assert(computed == credential);
+
+    let age = current_year - birth_year;
+    assert(age >= required_age);
+}
+```
+
+Note:
+Walk through the public/private split first, then the two assertions.
+bare = private: stays in the wallet, never leaves the device, never appears in the proof.
+pub = public: the verifier provides or can see these. Like a module signature — the FP audience gets this.
+Each assert is a constraint — a point where C must vanish.
+The whole function defines C and Z.
+
+----
+
+## This one line...
+
+<br>
+
+```rust
+assert(age >= required_age);
+```
+
+<br>
+
+...compiles to the **entire bit-decomposition circuit**.
+
+Note:
+One line of readable code. Lots of constraints.
+The DSL does the heavy lifting.
+
+----
+
+## The credential
+
+```rust
+credential:   pub Field,  // pedersen_hash([birth_year])
+```
+
+<br>
+
+```text
+GOVERNMENT ISSUES:
+  credential = pedersen_hash([1987])
+             = 0x19dd02231fae...
+  Stores in your wallet.
+
+VERIFIER RECEIVES:
+  credential   = 0x19dd02231fae...  ← can't reverse this
+  current_year = 2026
+  required_age = 18
+  proof        = <blob>
+```
+
+Note:
+Pedersen hash is ZKP-native — efficient inside circuits.
+The credential is a hash commitment. It ties birth_year to the proof without revealing it.
+In production: the credential also has a government signature.
+
+----
+
+## Production credentials
+
+```text
+CREDENTIAL ISSUANCE (once, by government)
+  fields      = { birth_date, name, nationality, device_pubkey, ... }
+  merkle_root = MerkleTree(fields).root
+  signature   = gov_key.sign(merkle_root)
+  => stored in your wallet
+```
+
+```text
+PROOF GENERATION (per use, on your device)
+  ZKP circuit proves all at once:
+    a) birth_date is a leaf in the Merkle tree    ← real credential
+    b) merkle_root is signed by the government    ← real credential
+    c) device_pubkey is a leaf in the same tree   ← this is mine
+    d) I can sign the nonce with device_privkey   ← I am present now
+    e) current_year - birth_year >= 18            ← age claim holds
+
+  Output: one proof, ~16KB
+```
+
+Note:
+Each layer creates more constraints.
+The demo implements layer (e) only.
+
+----
+
+## What each layer adds
+
+<table>
+  <thead><tr><th>Layer</th><th>Proves</th><th>Prevents</th></tr></thead>
+  <tbody>
+    <tr><td>Hash commitment</td><td>You know birth_year</td><td>Lying about birth_year</td></tr>
+    <tr><td>Issuer signature</td><td>Credential signed by authority</td><td>Forging credentials</td></tr>
+    <tr><td>Merkle proof</td><td>birth_year is one field of many</td><td>Mixing fields across creds</td></tr>
+    <tr><td>Device binding</td><td>Credential tied to your device key</td><td>Credential theft/sharing</td></tr>
+    <tr><td>Biometric</td><td>Device key unlocked by rightful user</td><td>Lost/stolen device</td></tr>
+    <tr><td>Nonce</td><td>Proof is for this request only</td><td>Replay attacks</td></tr>
+  </tbody>
+</table>
+
+Note:
+The demo implements row 1. Each row is one more assert in the circuit.
+The structure is identical at every layer — the demo is the first layer of a real system.
+
+----
+
+
+## Demo: PROVER side
+
+```bash
+node prove.mjs
+```
+
+```text
+Generating witness...
+  birth_year   = 1987  <-- stays here, never sent
+  current_year = 2026
+  required_age = 18
+  age          = 39
+
+Generating proof...
+Proof size:    2192 bytes
+Public inputs: ["0x19dd02231fae...", "0x7e6", "0x12"]
+
+proof.json written -- send this to the verifier.
+```
+
+Note:
+If time permits, run live. The proof is ~2KB. Fast to verify.
+Public inputs: credential (hash), current_year (0x7e6 = 2026), required_age (0x12 = 18).
+birth_year is nowhere to be found — not encrypted, not hashed, simply absent from the output.
+Point to proof.json if the audience wants to look: it's a blob + three public field elements. No 1987.
+
+----
+
+## Demo: VERIFIER side
+
+```bash
+node verify.mjs
+```
+
+```text
+Verifying proof...
+Public inputs from proof:
+  credential   = 0x19dd02231fae...
+  current_year = 2026
+  required_age = 18
+
+VERIFIED: age >= 18.
+The prover's birth_year was never revealed.
+```
+
+Note:
+Run this live. The verifier compiled the same circuit from the same Noir source.
+Same circuit → same C and Z → same verification key → can verify the proof.
+They never needed birth_year.
+
+----
+
+## How does the verifier know what's being proved?
+
+```text
+Same Noir source
+     ↓
+Same circuit  →  same C and Z
+     ↓
+Same verification key
+     ↓
+Can verify any proof from that circuit
+```
+
+The circuit is the **auditable specification**.
+
+Note:
+This is beautiful. The source code IS the spec. Anyone can audit it.
+Trust the math, audit the circuit.
+
+---
+
+## The pattern generalises
+
+```text
+Age verification    →  birth_year satisfies age ≥ N
+
+Credit score        →  score satisfies score ≥ 700
+
+Election integrity  →  ballot is valid without revealing vote
+
+Credential check    →  member of a set, without revealing which
+
+Compliance          →  computation was done correctly,
+                        without revealing the data
+```
+
+Note:
+Any predicate on private data. One proof. No data revealed.
+Each of these is C(w) = t · Z for the appropriate circuit.
+
+----
+
+## The design shift
+
+<br>
+
+**Old model:**
+> Give me your data. I'll check it.
+
+<br>
+
+**New model:**
+> You check it. Give me the proof.
+
+Note:
+This is the thesis, restated clearly. The inversion.
+You keep the data. You run the computation. You send the result.
+This is what data sovereignty looks like as an engineering pattern.
+
+----
+
+## Your phone becomes the root of your identity
+
+<br>
+
+Not a government database.
+Not a service's server.
+
+<br>
+
+# **You.**
+
+Note:
+The sovereignty payoff. The device is yours. The credential is yours. The proof is yours.
+You share the proof. You keep everything else.
+
+----
+
+## ☑ All three properties
+
+```text
+  ☑  Soundness       dishonest provers always fail
+  ☑  Zero-knowledge  the proof reveals nothing
+  ☑  Completeness    honest provers always succeed
+```
+
+Note:
+Return to the checklist. All three boxes checked.
+
+----
+
+## Zero Knowledge Proof?
+## That sounds useless.
+
+<br>
+
+*Actually, it's what makes the internet safe for secrets.*
+
+Note:
+Return to the title. Complete the arc.
+Thank you. Questions?
+
+---
+
+## Thank you
+
+<br>
+Philipp Kant
+
+ensurable.systems
+
+@philippkant.bsky.social
+
+----
+
+## How blinding works
+
+Replace `w` with `w̃` before committing:
+
+```text
+  w̃(x)  =  w(x)  +  b(x) · Z(x)
+```
+
+`b(x)` — a fresh random polynomial, chosen by the prover.
+
+<div class="fragment">
+<br>
+
+**Correctness preserved** — at the gate position ω⁰:
+
+```text
+  Z(ω⁰) = 0   →   w̃(ω⁰) = w(ω⁰) + b(ω⁰)·0 = birth_year
+```
+
+Wire value unchanged → C(w̃)(ω⁰) = C(w)(ω⁰) = 0 → quotient t still exists. ✓
+
+</div>
+
+<div class="fragment">
+<br>
+
+**Zero knowledge achieved** — at the random challenge r (outside the domain):
+
+```text
+  Z(r) ≠ 0   →   w̃(r) = w(r) + b(r)·Z(r)
+```
+
+`b(r)·Z(r)` is a fresh random mask → `w̃(r)` reveals nothing about `w(r)`. ✓
+
+</div>
+
+Note:
+Z does double duty: it marks where constraints must hold, AND provides the blinding term.
+The blinding term is exactly zero where correctness matters (the gate positions),
+and completely random where privacy matters (the challenge point r).
+This is why Z appears in both the divisibility claim and the blinding formula — same object, two roles.
+
+

@@ -1,0 +1,6 @@
+[package]
+name = "age_credential"
+type = "bin"
+authors = [""]
+
+[dependencies]
