@@ -1,0 +1,73 @@
+/* Tighten code blocks so they fit on slide */
+.reveal pre code {
+  font-size: 0.72em;
+  line-height: 1.45;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.reveal pre {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Tables: slightly smaller so they don't overflow */
+.reveal table {
+  font-size: 0.78em;
+}
+
+/* Tighten blockquotes */
+.reveal blockquote {
+  width: 90%;
+}
+
+/* Tables */
+.reveal table {
+  font-size: 0.78em;
+  border-collapse: collapse;
+  margin: 0 auto;
+}
+
+.reveal table th {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 0.5em 1em;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  text-align: left;
+}
+
+.reveal table td {
+  padding: 0.4em 1em;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: left;
+}
+
+.reveal table tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Prevent slide content from running off the bottom */
+.reveal .slides section {
+  overflow: hidden;
+}
+
+/* Match PDF page size to slide dimensions — eliminates letterboxing */
+@media print {
+  @page {
+    size: 1280px 800px;
+    margin: 0;
+  }
+}
+
+/* Company logo — fixed in bottom-right corner on all slides */
+body::after {
+  content: '';
+  position: fixed;
+  bottom: 16px;
+  left: 20px;
+  width: 80px;
+  height: 40px;
+  background: url('../assets/logo.webp') no-repeat left center / contain;
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 100;
+}
